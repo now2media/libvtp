@@ -1,0 +1,28 @@
+VTP_1.0 {
+    global:
+        vtp_create_sender;
+        vtp_destroy_sender;
+        vtp_sender_start;
+        vtp_sender_stop;
+        vtp_sender_send_frame;
+        vtp_sender_send_audio;
+        vtp_sender_get_port;
+        vtp_sender_set_scale_quality;
+
+        vtp_create_receiver;
+        vtp_destroy_receiver;
+        vtp_receiver_connect;
+        vtp_receiver_connect_by_name;
+        vtp_receiver_disconnect;
+        vtp_receiver_receive_frame;
+        vtp_receiver_receive_audio;
+        vtp_receiver_is_connected;
+
+        vtp_create_listener;
+        vtp_destroy_listener;
+        vtp_listener_start;
+        vtp_listener_stop;
+        vtp_listener_get_sources;
+    local:
+        *;
+};

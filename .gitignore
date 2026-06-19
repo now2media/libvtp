@@ -1,0 +1,9 @@
+build/
+.qtcreator/
+CMakeLists.txt.user
+*.user
+*.workspace
+.vscode/
+.idea/
+README.md
+vtp.code-workspace
