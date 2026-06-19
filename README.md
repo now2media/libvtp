@@ -106,3 +106,5 @@ cmake --build . --config Release
 
 📄 License
 libvtp Core is open-source software licensed under the MIT License. Advanced production nodes and reji automation modules are powered by the now2sdk ecosystem.
+
+**Keywords:** `vtp`, `broadcast-sdk`, `video-transport`, `linux-broadcast`, `422-chroma`, `low-latency`, `libjpeg-turbo`, `ndi-alternative`, `srt-alternative`, `now2sdk`
