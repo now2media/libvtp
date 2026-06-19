@@ -67,6 +67,8 @@ int main() {
     m_lFile->play(); // Studio-grade VTP 4:2:2 stream is now blazing across your network!
 }
 
+```
+
 What is now2sdk?
 now2sdk is a free broadcast framework that encapsulates complex media logic into clean, reusable objects (LLive, LFile, LOutput, LMixer).
 Learn more and download the free binaries at: sdk.now2media.com
@@ -74,6 +76,7 @@ Learn more and download the free binaries at: sdk.now2media.com
 ⚡ Quick Integration
 Pure C API (vtp.h)
 C
+```cpp
 #include <vtp.h>
 
 // 1. Initialize a broadcast sender node
@@ -90,12 +93,16 @@ vtp_sender_send_frame(sender, raw_rgb_buffer, VTP_FORMAT_RGB, timestamp_ns);
 vtp_sender_stop(sender);
 vtp_destroy_sender(sender);
 
-Compiling the Core
+```
 
+Compiling the Core
+```cpp
 Bash
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --config Release
+
+```
 
 📄 License
 libvtp Core is open-source software licensed under the MIT License. Advanced production nodes and reji automation modules are powered by the now2sdk ecosystem.
