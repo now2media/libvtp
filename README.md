@@ -9,10 +9,10 @@
 * **Ultra-Low Latency (Sub-10ms)**: Engineered specifically for interactive live production. End-to-end network transmission and decompression latency is **under 10ms** on standard local networks.
 * **Broadcast-Grade Quality**: Features **4:2:2 chroma subsampling** via TurboJPEG to prevent color bleeding on text/graphics boundaries, coupled with high-quality **Bicubic scaling** on the sender and **Smooth Pixmap Transform** (Anti-aliased) rendering on the receiver.
 * **Production-Ready Resolutions**: Optimized to stream high-bitrate video formats smoothly:
-  * **4K UHD (3840x2160)** @ 25p / 30p / 50p (1Gbps optimized)
-  * **2K QHD (2560x1440)** @ 25p / 30p / 50p / 60p
-  * **1080p Full HD (1920x1080)** @ 25p / 30p / 50p / 60p / 90p / 100p / 120p
-  * **720p HD (1280x720)** @ 25p / 30p / 50p / 60p / 90p / 100p / 120p (WiFi optimized)
+  * **4K UHD (3840x2160) (1Gbps optimized) ** @ 25p / 30p
+  * **2K QHD (2560x1440) (1Gbps optimized) ** @ 25p / 30p / 50p / 60p
+  * **1080p Full HD (1920x1080) (100Mbps optimized)** @ 25p / 30p / 50p / 60p / (90p / 100p /  120p 1Gbps optimized)
+  * **720p HD (1280x720) (WiFi optimized)** @ 25p / 30p / 50p / 60p / 90p / 100p / 120p 
 * **Zero Dependency Leaks & Symbol Protection**: Internal components (such as **Asio** and **libjpeg-turbo**) are entirely encapsulated using the **Pimpl Pattern**. With C++ symbol visibility restricted to `hidden` and customized linker version scripts (`vtp.map`), VTP is guaranteed to link side-by-side with heavy broadcast suites (like **NDI** and **DeckLink SDK**) without any runtime symbol clashes or memory crashes.
 
 ---
