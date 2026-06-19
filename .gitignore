@@ -5,5 +5,4 @@ CMakeLists.txt.user
 *.workspace
 .vscode/
 .idea/
-README.md
 vtp.code-workspace
