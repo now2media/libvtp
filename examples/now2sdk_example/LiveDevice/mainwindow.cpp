@@ -9,19 +9,16 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // GPU mode and timecode
     m_lLive->setProps("gpu", "true");
     m_lLive->setProps("timecode", "true");
     m_lLive->setProps("timecodeSource", "0");
 
-    // Preview connect
     m_lPreviewLive->previewEnable(ui->livePreview, true, true);
     m_lPreviewLive->previewObject(m_lLive);
     m_lPreviewLive->setProps("audio_meter", "true");
     m_lPreviewLive->setProps("maintain_ar", "true");
     m_lPreviewLive->setProps("timecode.preview", "true");
 
-    // Device Controller
     connect(ui->liveBtn, &QPushButton::clicked, this, &MainWindow::onLiveClicked);
     connect(ui->deviceComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onDeviceChanged);
     connect(ui->deviceChannelComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onChannelChanged);

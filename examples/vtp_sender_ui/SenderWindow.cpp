@@ -29,7 +29,6 @@ void SenderWindow::setupUI() {
     setWindowTitle("VTP Streamer - Sender");
     resize(480, 400);
 
-    // Apply sleek dark premium styling
     setStyleSheet(R"(
         QMainWindow {
             background-color: #121214;
@@ -113,7 +112,6 @@ void SenderWindow::setupUI() {
     presetCombo_->addItem("1280x720 30p (WiFi)", QVariantList{1280, 720, 30});
     presetCombo_->addItem("1280x720 25p (WiFi)", QVariantList{1280, 720, 25});
 
-    // Default select 1080p50
     presetCombo_->setCurrentIndex(11);
 
     qualitySpin_ = new QSpinBox(this);
@@ -130,7 +128,6 @@ void SenderWindow::setupUI() {
     formLayout->addRow("", alphaCheck_);
     formLayout->addRow("", audioCheck_);
 
-    // Real-time quality change connection
     connect(qualitySpin_, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
         if (vtpSender_) {
             vtp_sender_set_scale_quality(vtpSender_, val);
@@ -216,7 +213,6 @@ void SenderWindow::startStreaming() {
         return;
     }
 
-    // Set initial scale quality
     vtp_sender_set_scale_quality(vtpSender_, qualitySpin_->value());
 
     latestFrameData_.assign(targetWidth_ * targetHeight_ * 4, 0);
@@ -224,8 +220,7 @@ void SenderWindow::startStreaming() {
 
     isStreaming_ = true;
     isDecoding_ = true;
-    
-    // Spawn threads
+
     decodeThread_ = std::thread(&SenderWindow::decodeLoop, this);
     videoSendThread_ = std::thread(&SenderWindow::videoSendLoop, this);
 
@@ -345,7 +340,6 @@ void SenderWindow::decodeLoop() {
         return;
     }
 
-    // Video Decoder
     AVCodecParameters* videoCodecParams = formatContext->streams[videoStreamIndex]->codecpar;
     const AVCodec* videoCodec = avcodec_find_decoder(videoCodecParams->codec_id);
     AVCodecContext* videoCodecContext = avcodec_alloc_context3(videoCodec);
@@ -357,7 +351,6 @@ void SenderWindow::decodeLoop() {
         return;
     }
 
-    // Audio Decoder
     AVCodecContext* audioCodecContext = nullptr;
     if (audioStreamIndex >= 0 && audioCheck_->isChecked()) {
         AVCodecParameters* audioCodecParams = formatContext->streams[audioStreamIndex]->codecpar;
@@ -372,7 +365,6 @@ void SenderWindow::decodeLoop() {
         }
     }
 
-    // Video SwsContext (Scale to target resolution and convert to RGBA)
     SwsContext* swsContext = sws_getContext(
         videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt,
         targetWidth_, targetHeight_, AV_PIX_FMT_RGBA,
@@ -385,7 +377,6 @@ void SenderWindow::decodeLoop() {
     rgbaFrame->format = AV_PIX_FMT_RGBA;
     av_frame_get_buffer(rgbaFrame, 0);
 
-    // Audio SwrContext (Resample to 48000Hz Stereo 16-bit PCM)
     SwrContext* swrContext = nullptr;
     if (audioCodecContext) {
         swrContext = swr_alloc();
@@ -414,7 +405,7 @@ void SenderWindow::decodeLoop() {
     while (isDecoding_) {
         int read_res = av_read_frame(formatContext, pkt);
         if (read_res < 0) {
-            // Loop playback
+            
             av_seek_frame(formatContext, -1, 0, AVSEEK_FLAG_BACKWARD);
             avcodec_flush_buffers(videoCodecContext);
             if (audioCodecContext) {
@@ -440,7 +431,6 @@ void SenderWindow::decodeLoop() {
                     break;
                 }
 
-                // Scale & convert to RGBA
                 sws_scale(
                     swsContext, decFrame->data, decFrame->linesize, 0, videoCodecContext->height,
                     rgbaFrame->data, rgbaFrame->linesize
@@ -453,7 +443,6 @@ void SenderWindow::decodeLoop() {
                 }
                 double relative_frame_pts = frame_pts_sec - first_pts_sec;
 
-                // Sync video frame playback speed
                 auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                     std::chrono::steady_clock::now() - startTime).count() / 1000000.0;
                 if (relative_frame_pts > elapsed) {

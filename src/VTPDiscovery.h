@@ -57,4 +57,4 @@ private:
     std::vector<DiscoveredSource> sources_;
 };
 
-} // namespace vtp
+}

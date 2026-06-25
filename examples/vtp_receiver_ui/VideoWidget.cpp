@@ -11,7 +11,7 @@ void VideoWidget::updateFrame(QImage img) {
     QMutexLocker locker(&mutex_);
     currentImage_ = std::move(img);
     locker.unlock();
-    update(); // Trigger repaint
+    update(); 
 }
 
 void VideoWidget::clear() {
@@ -28,17 +28,16 @@ void VideoWidget::paintEvent(QPaintEvent* event) {
     
     QMutexLocker locker(&mutex_);
     if (currentImage_.isNull()) {
-        // Draw elegant standby background (dark gray grid placeholder)
+        
         painter.fillRect(rect(), QColor("#1C1C1E"));
         
         painter.setPen(QColor("#8E8E93"));
         painter.setFont(QFont("Arial", 14, QFont::Bold));
         painter.drawText(rect(), Qt::AlignCenter, "No Active VTP Stream\nSelect a source and click Start");
     } else {
-        // Clear background with black
-        painter.fillRect(rect(), Qt::black);
         
-        // Scale and center image keeping aspect ratio on-the-fly without calling .scaled()
+        painter.fillRect(rect(), Qt::black);
+
         double imageRatio = (double)currentImage_.width() / currentImage_.height();
         double widgetRatio = (double)width() / height();
         

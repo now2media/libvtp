@@ -7,10 +7,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
-# Find threads
 find_package(Threads REQUIRED)
 
-# Fetch standalone Asio (Header-only)
 include(FetchContent)
 FetchContent_Declare(
     asio
@@ -20,7 +18,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(asio)
 
-# Find TurboJPEG
 find_path(TURBOJPEG_INCLUDE_DIR turbojpeg.h)
 find_library(TURBOJPEG_LIBRARY NAMES turbojpeg)
 
@@ -31,7 +28,6 @@ endif()
 message(STATUS "Found TurboJPEG header: ${TURBOJPEG_INCLUDE_DIR}")
 message(STATUS "Found TurboJPEG library: ${TURBOJPEG_LIBRARY}")
 
-# VTP Library
 add_library(vtp SHARED
     src/vtp.cpp
     src/VTPSender.cpp
@@ -61,9 +57,6 @@ if(UNIX AND NOT APPLE)
     )
 endif()
 
-
-
-# Integrate GUI Examples if Qt6 is available
 find_package(Qt6 COMPONENTS Widgets Multimedia QUIET)
 if (Qt6_FOUND)
     message(STATUS "Qt6 found! Including UI examples in build.")

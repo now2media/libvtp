@@ -14,16 +14,14 @@
 ReceiverWindow::ReceiverWindow(QWidget* parent) : QMainWindow(parent) {
     setupUI();
 
-    // Create and start the VTP auto-discovery listener
     vtpListener_ = vtp_create_listener();
     vtp_listener_start(vtpListener_);
 
     vtpReceiver_ = vtp_create_receiver();
 
-    // Set up auto-refresh timer for discovered sources
     discoveryTimer_ = new QTimer(this);
     connect(discoveryTimer_, &QTimer::timeout, this, &ReceiverWindow::onAutoRefreshTimeout);
-    discoveryTimer_->start(1000); // Check for new sources every second
+    discoveryTimer_->start(1000); 
 }
 
 ReceiverWindow::~ReceiverWindow() {
@@ -43,7 +41,6 @@ void ReceiverWindow::setupUI() {
     setWindowTitle("VTP Receiver - Player");
     resize(800, 600);
 
-    // Sleek dark premium styling
     setStyleSheet(R"(
         QMainWindow {
             background-color: #121214;
@@ -90,7 +87,6 @@ void ReceiverWindow::setupUI() {
     mainLayout->setContentsMargins(15, 15, 15, 15);
     mainLayout->setSpacing(10);
 
-    // Top Controls Layout
     QHBoxLayout* controlsLayout = new QHBoxLayout();
     controlsLayout->setSpacing(10);
 
@@ -113,7 +109,6 @@ void ReceiverWindow::setupUI() {
     controlsLayout->addStretch();
     mainLayout->addLayout(controlsLayout);
 
-    // Manual Connection Controls Row
     QHBoxLayout* manualLayout = new QHBoxLayout();
     manualLayout->setSpacing(10);
 
@@ -144,7 +139,6 @@ void ReceiverWindow::setupUI() {
     manualLayout->addStretch();
     mainLayout->addLayout(manualLayout);
 
-    // Dynamic state management
     connect(manualCheck_, &QCheckBox::toggled, this, [this](bool checked) {
         ipEdit_->setEnabled(checked);
         portSpin_->setEnabled(checked);
@@ -153,12 +147,10 @@ void ReceiverWindow::setupUI() {
         refreshBtn_->setEnabled(!checked);
     });
 
-    // Video Renderer Widget
     videoWidget_ = new VideoWidget(this);
     videoWidget_->setMinimumSize(480, 270);
-    mainLayout->addWidget(videoWidget_, 1); // Expand to fill space
+    mainLayout->addWidget(videoWidget_, 1); 
 
-    // Bottom Info Layout
     QHBoxLayout* infoLayout = new QHBoxLayout();
     infoLabel_ = new QLabel("Stream Info: -", this);
     infoLabel_->setStyleSheet("color: #E2E2E6; font-size: 13px; font-weight: bold;");
@@ -176,7 +168,7 @@ void ReceiverWindow::setupUI() {
 }
 
 void ReceiverWindow::onRefreshSources() {
-    // Clear list and query dinleyiciden
+    
     onAutoRefreshTimeout();
 }
 
@@ -194,7 +186,6 @@ void ReceiverWindow::onAutoRefreshTimeout() {
         sourceCombo_->addItem(text);
     }
 
-    // Restore selected item if still there
     int idx = sourceCombo_->findText(currentSelect);
     if (idx != -1) {
         sourceCombo_->setCurrentIndex(idx);
@@ -233,13 +224,11 @@ void ReceiverWindow::startReceiving() {
             return;
         }
 
-        // 1. Connect to stream by name
         if (!vtp_receiver_connect_by_name(vtpReceiver_, vtpListener_, streamName.toUtf8().constData())) {
             QMessageBox::critical(this, "Connection Error", "Failed to connect to VTP stream by name.");
             return;
         }
 
-        // 2. Check if stream has audio
         for (const auto& src : discoveredSources_) {
             if (QString(src.name) == streamName) {
                 hasAudio = src.has_audio;
@@ -264,7 +253,6 @@ void ReceiverWindow::startReceiving() {
         audioReceiveThread_ = std::thread(&ReceiverWindow::audioReceiveLoop, this);
     }
 
-    // 3. Start frame receiving background thread
     isReceiving_ = true;
     threadRunning_ = true;
     receiveThread_ = std::thread(&ReceiverWindow::receiveLoop, this);
@@ -298,12 +286,10 @@ void ReceiverWindow::stopReceiving() {
 
     isReceiving_ = false;
 
-    // Shutdown socket to unblock read call
     if (vtpReceiver_) {
         vtp_receiver_disconnect(vtpReceiver_);
     }
 
-    // Stop audio receiver thread
     isAudioReceiving_ = false;
     if (audioReceiveThread_.joinable()) {
         audioReceiveThread_.join();
@@ -353,8 +339,7 @@ void ReceiverWindow::stopReceiving() {
 
 void ReceiverWindow::receiveLoop() {
     vtp_frame_t frame;
-    
-    // FPS computation variables
+
     int frameCount = 0;
     auto lastFpsTime = std::chrono::steady_clock::now();
     double currentFps = 0.0;
@@ -367,11 +352,9 @@ void ReceiverWindow::receiveLoop() {
                 std::chrono::steady_clock::now().time_since_epoch()).count();
 
             double latency_ms = (now_ns - frame.timestamp_ns) / 1000000.0;
-            
-            // Track video PTS
+
             lastVideoPts_ = frame.timestamp_ns;
 
-            // Calculate audio/video synchronization drift
             double drift_ms = 0.0;
             uint64_t last_a = lastAudioPts_.load();
             uint64_t last_v = lastVideoPts_.load();
@@ -379,16 +362,13 @@ void ReceiverWindow::receiveLoop() {
                 drift_ms = (static_cast<int64_t>(last_v) - static_cast<int64_t>(last_a)) / 1000000.0;
             }
 
-            // Map VTP format to QImage format
             QImage::Format qFormat = QImage::Format_RGB888;
             if (frame.format == VTP_FORMAT_RGBA) qFormat = QImage::Format_RGBA8888;
             else if (frame.format == VTP_FORMAT_BGR) qFormat = QImage::Format_BGR888;
             else if (frame.format == VTP_FORMAT_BGRA) qFormat = QImage::Format_ARGB32;
 
-            // Create QImage directly wrapping the SDK decompressed frame pointer
             QImage image(frame.data, frame.width, frame.height, qFormat);
-            
-            // Calculate actual receiving FPS
+
             frameCount++;
             auto now = std::chrono::steady_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastFpsTime).count();
@@ -398,7 +378,6 @@ void ReceiverWindow::receiveLoop() {
                 lastFpsTime = now;
             }
 
-            // Post image update and label update to GUI thread safely
             QMetaObject::invokeMethod(this, [this, img = image.copy(), frame, latency_ms, currentFps, drift_ms]() {
                 videoWidget_->updateFrame(img);
                 
@@ -420,7 +399,6 @@ void ReceiverWindow::receiveLoop() {
         }
     }
 
-    // If we exited loop because connection died, notify GUI thread
     if (isReceiving_) {
         QMetaObject::invokeMethod(this, [this]() {
             stopReceiving();
@@ -432,7 +410,7 @@ void ReceiverWindow::audioReceiveLoop() {
     vtp_audio_frame_t audioFrame;
     while (isAudioReceiving_ && vtp_receiver_is_connected(vtpReceiver_)) {
         if (vtp_receiver_receive_audio(vtpReceiver_, &audioFrame)) {
-            // Track audio PTS
+            
             lastAudioPts_ = audioFrame.timestamp_ns;
 
             if (audioDevice_) {

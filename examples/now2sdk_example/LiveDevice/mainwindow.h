@@ -35,4 +35,4 @@ private:
     LFilter  *m_delayFilter   = nullptr;
 };
 
-#endif // MAINWINDOW_H
+#endif 

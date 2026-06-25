@@ -29,12 +29,10 @@ private:
     void setupUI();
     void startStreaming();
     void stopStreaming();
-    
-    // Dual-thread architecture
+
     void decodeLoop();
     void videoSendLoop();
 
-    // UI Widgets
     QLineEdit* streamNameEdit_;
     QComboBox* presetCombo_;
     QSpinBox* qualitySpin_;
@@ -45,22 +43,18 @@ private:
     QPushButton* streamBtn_;
     QLabel* statusLabel_;
 
-    // VTP Sender
     vtp_sender_t* vtpSender_ = nullptr;
     bool isStreaming_ = false;
 
-    // FFmpeg Decoder Thread
     std::thread decodeThread_;
     std::thread videoSendThread_;
     std::atomic<bool> isDecoding_{false};
     std::string selectedFilePath_;
 
-    // Shared Frame Buffer
     std::vector<unsigned char> latestFrameData_;
     std::mutex latestFrameMutex_;
     bool latestFrameNew_ = false;
 
-    // Configured parameters
     int targetWidth_ = 1280;
     int targetHeight_ = 720;
     int targetFps_ = 60;
