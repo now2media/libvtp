@@ -112,29 +112,28 @@ bool VTPReceiver::Connect(const std::string &ip, uint16_t port) {
 }
 
 void VTPReceiver::Disconnect() {
-  if (!impl_->connected_)
-    return;
-  impl_->connected_ = false;
+  bool expected = true;
+  if (impl_->connected_.compare_exchange_strong(expected, false)) {
+    asio::error_code ec;
+    impl_->socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+    impl_->socket_.close(ec);
 
-  asio::error_code ec;
-  impl_->socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
-  impl_->socket_.close(ec);
-
-  if (impl_->receive_thread_.joinable()) {
-    impl_->receive_thread_.join();
-  }
-
-  {
-    std::lock_guard<std::mutex> lock(impl_->video_mutex_);
-    impl_->new_video_frame_available_ = false;
-    impl_->video_cv_.notify_all();
-  }
-  {
-    std::lock_guard<std::mutex> lock(impl_->audio_mutex_);
-    while (!impl_->audio_queue_.empty()) {
-      impl_->audio_queue_.pop();
+    {
+      std::lock_guard<std::mutex> lock(impl_->video_mutex_);
+      impl_->new_video_frame_available_ = false;
+      impl_->video_cv_.notify_all();
     }
-    impl_->audio_cv_.notify_all();
+    {
+      std::lock_guard<std::mutex> lock(impl_->audio_mutex_);
+      while (!impl_->audio_queue_.empty()) {
+        impl_->audio_queue_.pop();
+      }
+      impl_->audio_cv_.notify_all();
+    }
+  }
+
+  if (impl_->receive_thread_.joinable() && std::this_thread::get_id() != impl_->receive_thread_.get_id()) {
+    impl_->receive_thread_.join();
   }
 }
 

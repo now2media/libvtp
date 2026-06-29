@@ -36,18 +36,34 @@ struct VTPSender::Impl {
     while (running_) {
       try {
         asio::error_code ec;
-        auto socket = std::make_shared<asio::ip::tcp::socket>(io_context_);
-        acceptor_->accept(*socket, ec);
+        acceptor_->wait(asio::ip::tcp::acceptor::wait_read, ec);
+        if (ec == asio::error::operation_aborted || !running_) {
+          break;
+        }
 
         if (!ec) {
-          socket->set_option(asio::ip::tcp::no_delay(true));
-          std::lock_guard<std::mutex> lock(clients_mutex_);
-          clients_.push_back(socket);
-          std::cout << "[VTPSender] Client connected from "
-                    << socket->remote_endpoint().address().to_string()
-                    << std::endl;
-        } else {
-          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+          auto socket = std::make_shared<asio::ip::tcp::socket>(io_context_);
+          acceptor_->accept(*socket, ec);
+
+          if (!ec) {
+            socket->set_option(asio::ip::tcp::no_delay(true));
+#ifdef _WIN32
+            DWORD timeout = 1000;
+            setsockopt(socket->native_handle(), SOL_SOCKET, SO_SNDTIMEO,
+                       (const char *)&timeout, sizeof(timeout));
+#else
+            struct timeval tv;
+            tv.tv_sec = 1;
+            tv.tv_usec = 0;
+            setsockopt(socket->native_handle(), SOL_SOCKET, SO_SNDTIMEO,
+                       &tv, sizeof(tv));
+#endif
+            std::lock_guard<std::mutex> lock(clients_mutex_);
+            clients_.push_back(socket);
+            std::cout << "[VTPSender] Client connected from "
+                      << socket->remote_endpoint().address().to_string()
+                      << std::endl;
+          }
         }
       } catch (...) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -56,16 +72,31 @@ struct VTPSender::Impl {
   }
 
   void BroadcastBuffers(const std::vector<asio::const_buffer> &buffers) {
-    std::lock_guard<std::mutex> lock(clients_mutex_);
-    for (auto it = clients_.begin(); it != clients_.end();) {
+    std::vector<std::shared_ptr<asio::ip::tcp::socket>> clients_copy;
+    {
+      std::lock_guard<std::mutex> lock(clients_mutex_);
+      clients_copy = clients_;
+    }
+
+    std::vector<std::shared_ptr<asio::ip::tcp::socket>> failed_clients;
+
+    for (auto &client : clients_copy) {
       asio::error_code ec;
-      asio::write(*(*it), buffers, ec);
+      asio::write(*client, buffers, ec);
       if (ec) {
         std::cout << "[VTPSender] Client disconnected (write failed: "
                   << ec.message() << ")" << std::endl;
-        it = clients_.erase(it);
-      } else {
-        ++it;
+        failed_clients.push_back(client);
+      }
+    }
+
+    if (!failed_clients.empty()) {
+      std::lock_guard<std::mutex> lock(clients_mutex_);
+      for (auto &failed : failed_clients) {
+        auto it = std::find(clients_.begin(), clients_.end(), failed);
+        if (it != clients_.end()) {
+          clients_.erase(it);
+        }
       }
     }
   }
@@ -99,6 +130,7 @@ bool VTPSender::Start() {
     asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), 0);
     impl_->acceptor_ =
         std::make_unique<asio::ip::tcp::acceptor>(impl_->io_context_, endpoint);
+    impl_->acceptor_->non_blocking(true);
     impl_->port_ = impl_->acceptor_->local_endpoint().port();
     std::cout << "[VTPSender] TCP listening on port " << impl_->port_
               << std::endl;

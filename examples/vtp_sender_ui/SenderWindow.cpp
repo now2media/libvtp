@@ -252,6 +252,10 @@ void SenderWindow::stopStreaming() {
     isDecoding_ = false;
     isStreaming_ = false;
 
+    if (vtpSender_) {
+        vtp_sender_stop(vtpSender_);
+    }
+
     if (decodeThread_.joinable()) {
         decodeThread_.join();
     }
@@ -260,7 +264,6 @@ void SenderWindow::stopStreaming() {
     }
 
     if (vtpSender_) {
-        vtp_sender_stop(vtpSender_);
         vtp_destroy_sender(vtpSender_);
         vtpSender_ = nullptr;
     }
