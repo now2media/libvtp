@@ -26,3 +26,37 @@ VTP_1.0 {
     local:
         *;
 };
+
+VTP_2.0 {
+    global:
+        vtp_set_log_callback;
+        vtp_set_log_level;
+
+        vtp_sender_config_init;
+        vtp_create_sender_ex;
+        vtp_sender_send_frame_ex;
+        vtp_sender_send_frame_planar;
+        vtp_sender_send_audio_ex;
+        vtp_sender_send_metadata;
+        vtp_sender_get_tally;
+        vtp_sender_set_callbacks;
+        vtp_sender_get_client_count;
+        vtp_sender_get_stats;
+
+        vtp_receiver_config_init;
+        vtp_create_receiver_ex;
+        vtp_receiver_connect_ex;
+        vtp_receiver_set_auto_reconnect_name;
+        vtp_receiver_receive_frame_ex;
+        vtp_receiver_receive_audio_ex;
+        vtp_receiver_receive_metadata;
+        vtp_receiver_set_tally;
+        vtp_receiver_send_ptz;
+        vtp_receiver_send_control;
+        vtp_receiver_set_stream_tier;
+        vtp_receiver_set_callbacks;
+        vtp_receiver_get_stats;
+
+        vtp_generate_test_pattern;
+        vtp_generate_test_tone;
+} VTP_1.0;

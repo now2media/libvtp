@@ -23,9 +23,6 @@ vendor/
 *.o
 *.obj
 
-# Stream captures
-*.vtp
-
 # IDE & local configs
 .qtcreator/
 CMakeLists.txt.user
